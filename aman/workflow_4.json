@@ -1,0 +1,337 @@
+{
+  "name": "X Posting",
+  "nodes": [
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "id": "5b1cc120-3c02-46b4-bfc7-bdc9e9ae363d",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [580, 460],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NCEzjQRWstkUoMeX",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "basicAuth",
+        "formTitle": "Post on X",
+        "formDescription": "Directly post to X using this automation",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "post title"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b7447847-28bc-4ee3-9518-46dc3210268b",
+      "name": "Receive Post Title",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [380, 240],
+      "webhookId": "4d921ee9-7668-4133-8750-4e35f9fc2353",
+      "typeVersion": 2.2,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "v4CmK6rlEKQEMjEs",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\nwrite min 100 word about this topic '{{ $json[\"post title\"] }}'\nfor Linkedin and X platform separately",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "9b52651d-ab43-429a-9176-56ed29afee35",
+      "name": "Generate AI Content",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [580, 240],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"event_name\": {\n      \"type\": \"string\"\n    },\n    \"event_description\": {\n      \"type\": \"string\"\n    },\n    \"platform_posts\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"LinkedIn\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"post\": {\n              \"type\": \"string\"\n            },\n            \"hashtags\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\"\n              }\n            },\n            \"call_to_action\": {\n              \"type\": \"string\"\n            }\n          }\n        },\n        \"Twitter\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"post\": {\n              \"type\": \"string\"\n            },\n            \"hashtags\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"string\"\n              }\n            },\n            \"character_limit\": {\n              \"type\": \"integer\"\n            }\n          }\n        }\n      }\n    },\n    \"additional_notes\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+      },
+      "id": "f363dad1-532e-423d-b0ff-1f4ffa48dd9e",
+      "name": "Format AI Output",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [780, 460],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.output.platform_posts.Twitter.post }}",
+        "additionalFields": {
+          "attachments": "{{$json.body.id}}"
+        }
+      },
+      "id": "e8fd6a4f-9448-4c76-96b0-895d6fc0b30c",
+      "name": "Post to X",
+      "type": "n8n-nodes-base.twitter",
+      "position": [1380, 320],
+      "typeVersion": 2,
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "kE6hHQbTbmErKmnA",
+          "name": "X account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Your post has been successfully shared",
+        "completionMessage": "=Check it out:\n\nX (Twitter): \n[https://x.com/x/status/{{ $json.id }}]",
+        "options": {}
+      },
+      "id": "351351dd-da19-421c-8a94-dc7687a05097",
+      "name": "Show Confirmation",
+      "type": "n8n-nodes-base.form",
+      "position": [1660, 120],
+      "webhookId": "9c0b2419-aff6-40dd-95f7-5dfd0a88d46c",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.stability.ai/v2beta/stable-image/generate/ultra",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "Bearer sk-4upOifV5T5g87DCXhrnts9SDavmldLor2K2ySNPJrWdPhsRY"
+            },
+            {
+              "name": "accept",
+              "value": "image/*"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "output_format",
+              "value": "webp"
+            },
+            {
+              "name": "prompt",
+              "value": "=A professional image, which is closely related to {{ $json.output.platform_posts.Twitter.post }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "./lighthouse.webp"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1080, 520],
+      "id": "c9435be1-a02e-48cd-b58e-1994b790376e",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization\t",
+              "value": "Bearer HUGGINGFACE_TOKEN"
+            },
+            {
+              "name": "Content-Type\t",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"inputs\": \"\\\"{{ $json.output.platform_posts.Twitter.post }} It should be social media ready and attractive\\\"\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [940, 0],
+      "id": "ID HERE",
+      "name": "NAME"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twitter.com/2/media/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "media",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1180, 0],
+      "id": "a13e54e3-ed3d-4079-9c48-8994e7127971",
+      "name": "X upload",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "AI1veFmf2DXA4MO6",
+          "name": "Bearer Auth account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Generate AI Content": [
+      {
+        "json": {
+          "output": {
+            "platform_posts": {
+              "LinkedIn": {
+                "post": "AI is rapidly transforming education! From personalized learning experiences to AI-powered tutoring systems, the possibilities are vast. Educators can leverage AI to automate administrative tasks, freeing up valuable time to focus on student engagement and curriculum development. Imagine a classroom where every student receives tailored support based on their individual needs and learning style. AI can analyze student performance data to identify areas where they're struggling and provide targeted interventions. However, it's crucial to address ethical considerations, such as data privacy and algorithmic bias, to ensure equitable access and outcomes for all students. Let's embrace AI's potential to revolutionize education while prioritizing responsible implementation and human-centered approaches. #AIinEducation #EdTech #InnovationInEducation #PersonalizedLearning"
+              },
+              "Twitter": {
+                "post": "AI is changing the game in schools! 🤖 Personalized learning, AI tutors, & automated tasks are just the beginning. But let's not forget ethics - data privacy & bias must be addressed for fair access. How can we responsibly use AI to empower students & teachers? #AIinEducation #EdTech",
+                "character_limit": 280
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Post to X": {
+      "main": [
+        [
+          {
+            "node": "Show Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format AI Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate AI Content",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Post Title": {
+      "main": [
+        [
+          {
+            "node": "Generate AI Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate AI Content": {
+      "main": [
+        [
+          {
+            "node": "Post to X",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Image generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate AI Content",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [[]]
+    },
+    "Image generation": {
+      "main": [
+        [
+          {
+            "node": "X upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X upload": {
+      "main": [
+        [
+          {
+            "node": "Post to X",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "0284ac64-ba63-4db8-bcab-360689b5f7ef",
+  "meta": {
+    "templateId": "5913",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2c6d7c8618ff7ba86d16dc3016ae487ed86cb422c469042d905f2828035d8af2"
+  },
+  "id": "2kaBDrbhStD9MDIy",
+  "tags": []
+}
