@@ -1,0 +1,361 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst result = items.map((item) => {\n  const timestamp = parseInt(item?.json.internalDate)\n  const dateObject = new Date(timestamp);\n  return {\n    snippet: item?.json?.snippet,\n    subject: item?.json?.Subject,\n    sender: item?.json?.From,\n    date: dateObject.toLocaleString()\n  };\n});\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        64
+      ],
+      "id": "4e6322b2-6a6e-42e8-a484-1f3a1faee000",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following email and classify it as either \"Important\" or \"Spam\". An important email could be from a client, investor, or colleague regarding a work-related matter. A spam email is typically an unsolicited advertisement or a phishing attempt.\n\nRespond with ONLY the word \"Important\" or \"Spam\".\n\nSender: {{ $json.sender }}\nSubject: {{ $json.subject }}\nBody: {{ $json.snippet }}\n\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        48,
+        64
+      ],
+      "id": "b986c861-c172-49fb-80f6-bb19a9d90181",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        320
+      ],
+      "id": "750590d1-dd7b-4a22-ac70-2d47e460f8f8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "z5jNiQnZC1NM2Moq",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dae16a64-aab5-4425-99af-fa103e90ec7c",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "=Important",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        64
+      ],
+      "id": "5ed6359c-d930-49da-9b31-a45e094e1f10",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1agWJnd6ZFqm8oSHfR1u1Rw6X2ahiCn8whqlhRJr8gJY",
+          "mode": "list",
+          "cachedResultName": "Email Classifier",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1agWJnd6ZFqm8oSHfR1u1Rw6X2ahiCn8whqlhRJr8gJY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1agWJnd6ZFqm8oSHfR1u1Rw6X2ahiCn8whqlhRJr8gJY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Content": "={{ $('Code').item.json.snippet }}",
+            "Subject": "={{ $('Code').item.json.subject }}",
+            "From": "={{ $('Code').item.json.sender }}",
+            "Classification": "={{ $('AI Agent').item.json.output }}",
+            "Date": "={{ $('Code').item.json.date }}"
+          },
+          "matchingColumns": [
+            "Date"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "From",
+              "displayName": "From",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Content",
+              "displayName": "Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Classification",
+              "displayName": "Classification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1200,
+        80
+      ],
+      "id": "9604c1a9-ec16-40ee-8327-676786b098f4",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1xMgH5gJzJO7CtEy",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "1880474284",
+        "text": "=🚨 New Important Email! 🚨\n\n*From:* {{ $('Code').item.json.sender }}\n*Subject:* {{ $('Code').item.json.subject }}\n\n*Content:*\n{{ $('Code').item.json.snippet }}...",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        -112
+      ],
+      "id": "7c49dfe2-1d50-4d3d-b3ef-e6574d61ace8",
+      "name": "Send a text message",
+      "webhookId": "5ab74be3-1d48-4945-a8c0-0395c4446636",
+      "credentials": {
+        "telegramApi": {
+          "id": "UPQ9mUOOD0BpfEmz",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour"
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "both"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -416,
+        64
+      ],
+      "id": "5e50e2c5-6187-4ea9-810e-403033c5f566",
+      "name": "Gmail Trigger",
+      "notesInFlow": false,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "iS1wRa3XSLYYmFkE",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Gmail Trigger": [
+      {
+        "json": {
+          "id": "19836eff100ed844",
+          "threadId": "19836a811bf7717f",
+          "snippet": "You allowed n8n.cloud access to some of your Google Account data anshit.dev@gmail.com If you didn&#39;t allow n8n.cloud access to some of your Google Account data, someone else may be trying to access",
+          "payload": {
+            "mimeType": "multipart/alternative"
+          },
+          "sizeEstimate": 13619,
+          "historyId": "12230",
+          "internalDate": "1753268350000",
+          "labels": [
+            {
+              "id": "INBOX",
+              "name": "INBOX"
+            },
+            {
+              "id": "IMPORTANT",
+              "name": "IMPORTANT"
+            },
+            {
+              "id": "CATEGORY_UPDATES",
+              "name": "CATEGORY_UPDATES"
+            },
+            {
+              "id": "UNREAD",
+              "name": "UNREAD"
+            }
+          ],
+          "Subject": "Security alert",
+          "From": "Google <no-reply@accounts.google.com>",
+          "To": "anshit.dev@gmail.com"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e5757012-5506-4f22-8a63-c3950264b413",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9d98c4104e46754cdc1fcc011fe53d233f0059287a415130e48077aee647975f"
+  },
+  "id": "WwMu8l0NAXMZEpNa",
+  "tags": []
+}
