@@ -9,10 +9,7 @@
       "id": "5b1cc120-3c02-46b4-bfc7-bdc9e9ae363d",
       "name": "Google Gemini Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "position": [
-        580,
-        460
-      ],
+      "position": [580, 460],
       "typeVersion": 1,
       "credentials": {
         "googlePalmApi": {
@@ -38,10 +35,7 @@
       "id": "b7447847-28bc-4ee3-9518-46dc3210268b",
       "name": "Receive Post Title",
       "type": "n8n-nodes-base.formTrigger",
-      "position": [
-        380,
-        240
-      ],
+      "position": [380, 240],
       "webhookId": "4d921ee9-7668-4133-8750-4e35f9fc2353",
       "typeVersion": 2.2,
       "credentials": {
@@ -61,10 +55,7 @@
       "id": "9b52651d-ab43-429a-9176-56ed29afee35",
       "name": "Generate AI Content",
       "type": "@n8n/n8n-nodes-langchain.agent",
-      "position": [
-        580,
-        240
-      ],
+      "position": [580, 240],
       "typeVersion": 1.7
     },
     {
@@ -75,10 +66,7 @@
       "id": "f363dad1-532e-423d-b0ff-1f4ffa48dd9e",
       "name": "Format AI Output",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "position": [
-        780,
-        460
-      ],
+      "position": [780, 460],
       "typeVersion": 1.2
     },
     {
@@ -91,10 +79,7 @@
       "id": "e8fd6a4f-9448-4c76-96b0-895d6fc0b30c",
       "name": "Post to X",
       "type": "n8n-nodes-base.twitter",
-      "position": [
-        1380,
-        320
-      ],
+      "position": [1380, 320],
       "typeVersion": 2,
       "credentials": {
         "twitterOAuth2Api": {
@@ -113,10 +98,7 @@
       "id": "351351dd-da19-421c-8a94-dc7687a05097",
       "name": "Show Confirmation",
       "type": "n8n-nodes-base.form",
-      "position": [
-        1660,
-        120
-      ],
+      "position": [1660, 120],
       "webhookId": "9c0b2419-aff6-40dd-95f7-5dfd0a88d46c",
       "typeVersion": 1
     },
@@ -162,10 +144,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        1080,
-        520
-      ],
+      "position": [1080, 520],
       "id": "c9435be1-a02e-48cd-b58e-1994b790376e",
       "name": "HTTP Request"
     },
@@ -178,7 +157,7 @@
           "parameters": [
             {
               "name": "Authorization\t",
-              "value": "Bearer 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"
+              "value": "Bearer hf_ACCESS_TOKEN"
             },
             {
               "name": "Content-Type\t",
@@ -197,10 +176,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        940,
-        0
-      ],
+      "position": [940, 0],
       "id": "d9c8dbaf-b0c1-406a-8669-2b359345e646",
       "name": "Image generation"
     },
@@ -231,10 +207,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        1180,
-        0
-      ],
+      "position": [1180, 0],
       "id": "a13e54e3-ed3d-4079-9c48-8994e7127971",
       "name": "X upload",
       "credentials": {
@@ -326,9 +299,7 @@
       ]
     },
     "HTTP Request": {
-      "main": [
-        []
-      ]
+      "main": [[]]
     },
     "Image generation": {
       "main": [
