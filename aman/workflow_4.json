@@ -157,7 +157,7 @@
           "parameters": [
             {
               "name": "Authorization\t",
-              "value": "Bearer hf_ACCESS_TOKEN"
+              "value": "Bearer "
             },
             {
               "name": "Content-Type\t",
