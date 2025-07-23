@@ -157,7 +157,7 @@
           "parameters": [
             {
               "name": "Authorization\t",
-              "value": "Bearer "
+              "value": "Bearer <YOUR_HUGGINGFACE_TOKEN>"
             },
             {
               "name": "Content-Type\t",
