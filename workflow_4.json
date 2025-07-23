@@ -1,0 +1,348 @@
+{
+  "name": "workflow 4",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Enter the Topic of keyword o",
+        "formDescription": "Enter the topic or keyword on which you want to post about",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Topic or Keyword",
+              "fieldType": "textarea",
+              "placeholder": "AI or Elon Views on AI",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "afd37f9d-492f-4be0-b95a-f749e10bf1cf",
+      "name": "On form submission1",
+      "webhookId": "8d2ed597-2add-4d48-82a7-2b1de65e4942"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\"topicORKeyword\": {{ $json[\"Topic or Keyword\"] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a helpful, and intelligent writer\n\nYour task is to take the topic or keyword from the user\n\nYour will be provided with the keyword or the Topic from the user and you have to generate these 2 content and hashtags things for a twitter post and generate these things within the twitter limit so they can be posted for the non subscribed accounts and also generate a unique id with every response\n\nYou should follow the output JSON output format \n\n{\n\"uniqueId\":\"enter the unique id here\"\n\"content\":\"enter content here with hashtags\",\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "48306e02-12ed-4681-96ce-3db0cf333c87",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"uniqueId\":\"string\",\n  \"content\":\"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        176
+      ],
+      "id": "2fa4b0e2-55bf-4db1-8dad-d79c4634543e",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        176,
+        208
+      ],
+      "id": "a1907caf-70a8-4116-85ab-9b727961c48d",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "m5t6NFjw3r6uJjD2",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1aF2v91RnqbF-pVJ0327jDc7RJ4mvMRohfOX2iuSLEuc",
+          "mode": "list",
+          "cachedResultName": "X Content",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aF2v91RnqbF-pVJ0327jDc7RJ4mvMRohfOX2iuSLEuc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aF2v91RnqbF-pVJ0327jDc7RJ4mvMRohfOX2iuSLEuc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "uniqueid": "={{ $json.output.uniqueId }}",
+            "content": "={{ $json.output.content }}"
+          },
+          "matchingColumns": [
+            "output"
+          ],
+          "schema": [
+            {
+              "id": "uniqueid",
+              "displayName": "uniqueid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tweeted with id",
+              "displayName": "tweeted with id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        608,
+        0
+      ],
+      "id": "966f60d4-41e8-461d-bf1e-17890c1176b7",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ANKiAbRxEXSR3WJI",
+          "name": "2005mail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.content }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 2,
+      "position": [
+        816,
+        0
+      ],
+      "id": "6a52af93-1d82-4e62-9b30-7c85ca25216d",
+      "name": "Create Tweet",
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "Uyfiub2zJxxcr5bE",
+          "name": "X account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1aF2v91RnqbF-pVJ0327jDc7RJ4mvMRohfOX2iuSLEuc",
+          "mode": "list",
+          "cachedResultName": "X Content",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aF2v91RnqbF-pVJ0327jDc7RJ4mvMRohfOX2iuSLEuc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aF2v91RnqbF-pVJ0327jDc7RJ4mvMRohfOX2iuSLEuc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "uniqueid": "={{ $('Append row in sheet1').item.json.uniqueid }}",
+            "tweeted with id": "={{ $json.edit_history_tweet_ids }}"
+          },
+          "matchingColumns": [
+            "uniqueid"
+          ],
+          "schema": [
+            {
+              "id": "uniqueid",
+              "displayName": "uniqueid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "tweeted with id",
+              "displayName": "tweeted with id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "390f616e-36a4-4b90-b5cb-b9687a96cc1f",
+      "name": "Append or update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ANKiAbRxEXSR3WJI",
+          "name": "2005mail"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Create Tweet": [
+      {
+        "json": {
+          "text": "Elon Musk's take on AI: A mix of awe &amp; caution. He warns of potential existential risks while advocating for beneficial AGI like xAI's Grok. Regulation is key for a safe future. #ElonMusk #AI #ArtificialIntelligence #Technology #FutureOfAI",
+          "id": "1947298363143057771",
+          "edit_history_tweet_ids": [
+            "1947298363143057771"
+          ]
+        }
+      }
+    ]
+  },
+  "connections": {
+    "On form submission1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Create Tweet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Tweet": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ee48a366-72e0-4956-9916-d511fa43e58b",
+  "meta": {
+    "instanceId": "fa369504e5679297e685f40d4a45be52659312dea6cb88f6095ac4d6144bd19c"
+  },
+  "id": "TuBJ4GHvQkv3esg2",
+  "tags": []
+}
