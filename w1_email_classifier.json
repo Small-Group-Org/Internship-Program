@@ -1,0 +1,379 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour"
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "72f943c1-909e-48f8-b4fc-9bd1ab31d934",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "P3rsW23nokHMgmZ4",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-1.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-1.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Classify the following email as \"Important\" or \"Spam\".\nEmail Date: {{ $json.internalDate }}\nEmail From: {{ $json.From }}\nEmail Subject: {{ $json.Subject }}\nEmail Content: {{ $json.textBody || $json.htmlBody || $json.snippet }}\n\nProvide ONLY the classification word (either \"Important\" or \"Spam\")."
+            }
+          ]
+        },
+        "options": {
+          "maxOutputTokens": 10,
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "93854b76-b99d-48b9-b1df-a27673316ae2",
+      "name": "Message a model",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Yo38HS9y0wxoyjda",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3512219d-cc81-43ef-a974-5abf10873538",
+              "leftValue": "={{ $json.content.parts[0].text.trim() }}",
+              "rightValue": "Important",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "f21bffca-20c6-4d95-a503-7aa090c9eedc",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "16mkeDD3OKsOp8cALph89r-tjsjzi2zyVAvB5aIOUABQ",
+          "mode": "list",
+          "cachedResultName": "Email Classification Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16mkeDD3OKsOp8cALph89r-tjsjzi2zyVAvB5aIOUABQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16mkeDD3OKsOp8cALph89r-tjsjzi2zyVAvB5aIOUABQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $('Gmail Trigger').item.json.internalDate }}",
+            "From": "={{ $('Gmail Trigger').item.json.From }}",
+            "Subject": "={{ $('Gmail Trigger').item.json.Subject }}",
+            "Content": "={{ $('Gmail Trigger').item.json.snippet }}",
+            "Classification": "={{ $json.content.parts[0].text.trim() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "From",
+              "displayName": "From",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Content",
+              "displayName": "Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Classification",
+              "displayName": "Classification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        848,
+        -96
+      ],
+      "id": "8c6f9a40-aaad-40dc-b90c-7f29ecf79dc4",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vBQYd0aYmYsBtKs0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "846810630",
+        "text": "={{ $json.From }}\n{{ $('Gmail Trigger').item.json.snippet }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1072,
+        -96
+      ],
+      "id": "e41b0f25-a290-4da6-ad4b-a98287f420a8",
+      "name": "Send a text message",
+      "webhookId": "db5726f6-dc5d-458b-a5e5-113247d15b57",
+      "credentials": {
+        "telegramApi": {
+          "id": "MOj2Wc0pv2JdrkXe",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "16mkeDD3OKsOp8cALph89r-tjsjzi2zyVAvB5aIOUABQ",
+          "mode": "list",
+          "cachedResultName": "Email Classification Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16mkeDD3OKsOp8cALph89r-tjsjzi2zyVAvB5aIOUABQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16mkeDD3OKsOp8cALph89r-tjsjzi2zyVAvB5aIOUABQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $('Gmail Trigger').item.json.internalDate }}",
+            "From": "={{ $('Gmail Trigger').item.json.From }}",
+            "Subject": "={{ $('Gmail Trigger').item.json.Subject }}",
+            "Content": "={{ $('Gmail Trigger').item.json.snippet }}",
+            "Classification": "={{ $json.content.parts[0].text.trim() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "From",
+              "displayName": "From",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Content",
+              "displayName": "Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Classification",
+              "displayName": "Classification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        848,
+        96
+      ],
+      "id": "8fd498d6-6cd7-4a1c-8a18-c156ebb0b5f5",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vBQYd0aYmYsBtKs0",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8aa1a94c-2262-4fd8-8248-6ba2427f6a22",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "40ae4eb9f1b637d575c43764759c5682915b829c1085baec877a6cb6ccf9c054"
+  },
+  "id": "NYZ8uAGCGiFvzm16",
+  "tags": []
+}
