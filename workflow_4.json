@@ -1,0 +1,373 @@
+{
+  "name": "social-media posts",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "34189e66-b829-406e-89c3-e705ff9d8dee",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"topic\": \"The Social Network\"\n}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "689a437d-9983-40dc-ac0a-df7dc9c1176e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a social media copywriter.\n\nGiven the topic \"{{ $json[\"topic\"] }}\", write a Twitter post under 280 characters. Include 1–2 relevant hashtags. Also suggest a single short keyword or phrase for image search.\n\nReturn in JSON format:\n{\n  \"caption\": \"...\",\n  \"hashtags\": [\"#tag1\", \"#tag2\"],\n  \"imageKeyword\": \"...\"\n}\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "9b47b9e4-5f4c-4ad2-9ed3-562ed3d49e65",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        480,
+        224
+      ],
+      "id": "3686f7e5-bcdc-4079-9aff-b7bdad8bd747",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hB5lXvzFQx5eGUQY",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"caption\": \"Solar energy is not just the future — it's the NOW. Clean, renewable, and powerful. ☀️\",\n  \"hashtags\": [\"#SolarPower\", \"#GreenEnergy\"],\n  \"imageKeyword\": \"solar panels\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        224
+      ],
+      "id": "15dd708f-0d98-4920-87c8-d0d496490a8b",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "text": "={{ $('AI Agent').item.json.output.caption }}\n\n{{ $('AI Agent').item.json.output.hashtags[0] }} {{ $('AI Agent').item.json.output.hashtags[1] }}\n\n\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        0
+      ],
+      "id": "52a7de11-65d1-4d40-a3a4-8189a3a706ed",
+      "name": "Create Tweet",
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "EECPreqe4OrafKLv",
+          "name": "automate_twt"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.pexels.com/v1/search?query={{ $json.output.imageKeyword }}&per_page=1",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "dBm8XMy3qfsKJsIrXDYj42RBrV1zdpOPwBUYgkV74s7i3rDtT8BS6ZaR"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        848,
+        0
+      ],
+      "id": "f28b7981-572b-4bde-aa1e-646fc7e53bd8",
+      "name": "Image API"
+    },
+    {
+      "parameters": {
+        "sendTo": "gajendra.rao@proton.me",
+        "subject": "={{ $json.output.subject }}",
+        "message": "={{ $json.output.body }}",
+        "options": {
+          "bccList": "gajendrapawar69@gmail.com"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2320,
+        0
+      ],
+      "id": "720d0d48-1be0-4aba-bd53-07307ad6fb82",
+      "name": "Send a message",
+      "webhookId": "3891bcfe-4220-4cfc-ad3a-df68621655d1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "4YvsEGH4in0tTTFC",
+          "name": "Gajendra"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert email copywriter.\n\nGiven the following input:\n\nTopic: \"{{ $('Edit Fields').item.json.topic }}\"\nTweet Text: \"{{ $json.text }}\"\nTweet URL: \"https://x.com/automate_twt/status/{{ $json.id }}\"\n\nWrite a professional, concise notification email in **HTML format** informing the user that their content has been successfully posted on X (formerly Twitter).\n\nReturn only the following JSON with **clean, make it in black and white theme well-structured HTML** for the body (use inline CSS for styling, keep it minimal and mobile-friendly):\n\n{\n  \"subject\": \"Email subject here\",\n  \"body\": \"<html>...</html>\"\n}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        1968,
+        0
+      ],
+      "id": "72093e42-1f93-4a54-94de-0586536463b2",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        208
+      ],
+      "id": "0507445e-7b07-4b80-840d-cb6bdc0d387a",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hB5lXvzFQx5eGUQY",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"subject\": \"Your content is live on X!\",\n  \"body\": \"<html><body style=\\\"font-family:Arial, sans-serif; color:#333;\\\"><h2 style=\\\"color:#1DA1F2;\\\">Content Posted Successfully</h2><p>Hi,</p><p>Your content on the topic <strong>Sustainable Energy</strong> has been posted on X.</p><p><em>Tweet:</em> \\\"Solar power is shaping the future. #GreenEnergy #Sustainability\\\"</p><p>View it here: <a href=\\\"https://x.com/your_tweet_url\\\" style=\\\"color:#1DA1F2;\\\">https://x.com/your_tweet_url</a></p><p>Thank you for choosing our platform.</p><p>Best,<br/>The Team</p></body></html>\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2144,
+        208
+      ],
+      "id": "f1a7ddc1-64b4-47df-a241-96ea5fb51efc",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.photos[0].src.original }}",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "55ac9e48-c480-494a-bf5f-08d96d568cef",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1104,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "id": "7b8f5674-ff67-40ef-a790-5a0eeb848a95",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        -32
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Image API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image API": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Tweet": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Create Tweet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2fcece80-ab58-47c3-8204-4c45a8e72dcb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "98b83ea37c2503fdf318965e4863d1808c91d7a954f71f8b8390b383ad59fd7c"
+  },
+  "id": "lgiQzse6GCRMZCyA",
+  "tags": []
+}

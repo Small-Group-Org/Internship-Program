@@ -1,0 +1,297 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        48,
+        1216
+      ],
+      "id": "909bbe7a-82da-494a-840c-f820b5b1baef",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/ZwayOL22e3PdHUQba/run-sync-get-dataset-items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": ""
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"keyword\": \"automotive\"\n}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        272,
+        1216
+      ],
+      "id": "9d386b64-4906-48d3-8f3c-a683f466c226",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are an assistant that helps personalize outreach emails from LinkedIn lead data.",
+        "options": {
+          "systemMessage": "=You are an assistant that helps personalize outreach emails from LinkedIn lead data. You will be given a list of lead objects, each containing:\n\n- `title` (the full LinkedIn title with name and job info)\n- `email`\n- `url` (LinkedIn profile link)\n- `text` (bio text or snippet from LinkedIn)\n\n---\n\nFor each lead, generate a JSON object with:\n\n- `name`: Extracted name from the title field (before the dash).\n- `email`: As-is.\n- `linkedin_title`: Copy of the full title.\n- `linkedin_url`: As-is.\n- `email_body`: Write a short, personalized email to the person based on their role, company, and domain experience. Keep the tone warm, professional, and relevant to their role.\n\nOutput a JSON array of such objects for all leads.\n\nHere is the input data:\n {{ $json.email }}\n{{ $json.title }}\n{{ $json.url }}\n{{ $json.text }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        544,
+        1200
+      ],
+      "id": "fa35ba6b-fae2-4711-ba77-a40c34cb2e94",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        592,
+        1440
+      ],
+      "id": "ab3b5bfd-33e5-4197-86d8-7e6d3ebe5003",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hB5lXvzFQx5eGUQY",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1mrWdaJF40b5LYKFt_m-HoMYZmKDdhZUcTevjdFRguzg",
+          "mode": "list",
+          "cachedResultName": "linkedin leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mrWdaJF40b5LYKFt_m-HoMYZmKDdhZUcTevjdFRguzg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mrWdaJF40b5LYKFt_m-HoMYZmKDdhZUcTevjdFRguzg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name of lead": "={{ $('Code').item.json.name }}",
+            "email": "={{ $('Code').item.json.email }}",
+            "linkedin url": "={{ $('Code').item.json.linkedin_url }}",
+            "linkedin title": "={{ $('Code').item.json.linkedin_title }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name of lead",
+              "displayName": "name of lead",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "linkedin url",
+              "displayName": "linkedin url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "linkedin title",
+              "displayName": "linkedin title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1312,
+        1184
+      ],
+      "id": "d60c8151-5621-48cb-92a3-00084392fbba",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZpXLuV4EqEDSSIO6",
+          "name": "Gajendra"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $input.first().json.output\n\n// Remove code block markers and trim whitespace\nconst cleaned = raw\n  .replace(/```json\\s*/g, '')\n  .replace(/```/g, '')\n  .trim();\n\nlet parsed;\nparsed = JSON.parse(cleaned);\n\n// If your JSON structure is like: {\"items\": [...]} or {\"data\": [...]}\nlet itemsArray;\nif (parsed.items) {\n  itemsArray = parsed.items;\n} else if (parsed.data) {\n  itemsArray = parsed.data;\n} else if (Array.isArray(parsed)) {\n  itemsArray = parsed;\n} else {\n  // If it's a single object, create an array\n  itemsArray = [parsed];\n}\n\n// Only return the actual items that exist (don't pad to 10)\nconst result = [];\nfor (let i = 0; i < itemsArray.length; i++) {\n  result.push({ json: itemsArray[i] });\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        1184
+      ],
+      "id": "6044011b-5a15-4244-9384-9beb0c4f6ccb",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "={{ $json.name }}, Checkout Our Product",
+        "message": "={{ $json.email_body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1088,
+        1184
+      ],
+      "id": "6e8da3ee-2d13-4198-852e-8ca2130d5cc6",
+      "name": "Send a message",
+      "webhookId": "7e540744-984f-43dc-b504-8a4c3e584908",
+      "executeOnce": false,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "4YvsEGH4in0tTTFC",
+          "name": "Gajendra"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "97678308-9815-4ee0-8ee1-dc9a188d9b1d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "98b83ea37c2503fdf318965e4863d1808c91d7a954f71f8b8390b383ad59fd7c"
+  },
+  "id": "fmRtV0FzvrkWB8XI",
+  "tags": []
+}
