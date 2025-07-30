@@ -20,13 +20,13 @@
     },
     {
       "parameters": {
-        "jsCode": "// FAQ knowledge base\nconst faqs = [\n  {\n    keywords: [\"hours\", \"open\", \"working hours\", \"when are you open\"],\n    answer: \"We are open Monday to Friday, 9 AM to 6 PM Eastern Time.\"\n  },\n  {\n    keywords: [\"contact\", \"email\", \"phone\", \"call\"],\n    answer: \"You can email us at help@company.com or call 1-800-555-0123.\"\n  },\n  {\n    keywords: [\"services\", \"offer\", \"provide\", \"what do you do\"],\n    answer: \"We offer web design, app development, and digital marketing services.\"\n  },\n  {\n    keywords: [\"pricing\", \"cost\", \"price\", \"charges\"],\n    answer: \"Our basic package starts at $99 per month. Contact us for custom pricing.\"\n  },\n  {\n    keywords: [\"location\", \"where\", \"address\"],\n    answer: \"We are located in New York City, but we serve clients nationwide.\"\n  },\n  {\n    keywords: [\"support\", \"help\", \"technical\", \"issue\"],\n    answer: \"For technical support, email support@company.com or call our helpline.\"\n  }\n];\n\n// Safely extract input\nconst input = $input.all()[0].json;\nconst userQuestion = String(\n  input.message?.content || \n  input.transcript || \n  input.query || \"\"\n).toLowerCase();\n\nconsole.log(\"User asked:\", userQuestion);\n\n// Matching logic\nfunction findAnswer(question) {\n  for (const faq of faqs) {\n    for (const keyword of faq.keywords) {\n      if (question.includes(keyword)) {\n        return faq.answer;\n      }\n    }\n  }\n  return \"I don't have that information right now. Please contact our support team at help@company.com for assistance.\";\n}\n\nconst response = findAnswer(userQuestion);\n\n// Output response\nreturn {\n  json: {\n    answer: response,\n    question: userQuestion,\n    timestamp: new Date().toISOString()\n  }\n};\n"
+        "jsCode": "// Step 1: Define FAQs with keyword matching\nconst faqs = [\n  {\n    keywords: [\"working hours\", \"open\", \"hours\", \"timing\"],\n    answer: \"We are open Monday to Friday, 9 AM to 6 PM Eastern Time.\"\n  },\n  {\n    keywords: [\"location\", \"address\", \"where are you\"],\n    answer: \"We are located in New York City, but we serve clients nationwide.\"\n  },\n  {\n    keywords: [\"pricing\", \"cost\", \"price\", \"charges\"],\n    answer: \"Our basic package starts at $99 per month. Contact us for custom pricing.\"\n  },\n  {\n    keywords: [\"contact\", \"email\", \"phone\", \"support\"],\n    answer: \"You can email us at help@company.com or call 1-800-555-0123.\"\n  }\n];\n\n// Step 2: Extract input from webhook\nconst input = $input.all()[0].json;\n\n// Step 3: Normalize query for matching\nfunction normalize(text) {\n  return String(text || \"\").toLowerCase().replace(/[^\\w\\s]/g, \"\").trim();\n}\n\nconst rawQuestion = input.body?.query || input.query || input.message?.content || input.transcript || \"\";\nconst normalizedQuestion = normalize(rawQuestion);\nconst toolCallId = String(input.body?.toolCallId || input.toolCallId || \"1\");\n\nconsole.log(\"Normalized question:\", normalizedQuestion);\nconsole.log(\"ToolCallId:\", toolCallId);\n\n// Step 4: Find the matching answer\nlet matchedAnswer = null;\n\nfor (const faq of faqs) {\n  for (const keyword of faq.keywords) {\n    if (normalizedQuestion.includes(normalize(keyword))) {\n      matchedAnswer = faq.answer;\n      break;\n    }\n  }\n  if (matchedAnswer) break;\n}\n\n// Step 5: Prepare and return response\nconst answer = matchedAnswer || \"I don't have that information right now. Please contact our support team at help@company.com for assistance.\";\n\nreturn {\n  json: {\n    results: [\n      {\n        toolCallId,\n        result: answer\n      }\n    ]\n  }\n};\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -16,
-        16
+        32,
+        224
       ],
       "id": "2c30c8b6-c116-4142-8024-a7196f6afeae",
       "name": "Code"
@@ -76,7 +76,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "808218b8-a982-452a-a2cf-3858b5310786",
+  "versionId": "c29b24fa-7775-4b11-a4d9-7a29f1656bc5",
   "meta": {
     "instanceId": "a050a933cf254a1bc1b812ee8a0fce549597bf172c2e4ea92f540fcc33ac97dd"
   },
